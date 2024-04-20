@@ -37,6 +37,11 @@ public class TransitAPI {
         void onError(String errorMessage);
     }
 
+    public interface KeyCallback {
+        void onKeyReceived(int key);
+        void onError(String errorMessage);
+    }
+
     /*
     *
     *
@@ -95,14 +100,12 @@ public class TransitAPI {
     *
     *
     * */
-    public static void getLocationKey(double latitude, double longitude) {
-
+    public static void getLocationKey(double latitude, double longitude, final KeyCallback callback) {
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
                 try {
                     // Construct the API URL
-
                     URL url = new URL("https://api.winnipegtransit.com/v3/locations.json?api-key=z5n7FCN-dAfzeP5JbMxU&lat=" + latitude + "&lon=" + longitude + "&distance=250");
 
                     // Open connection
@@ -144,12 +147,21 @@ public class TransitAPI {
                             JSONObject addressObject = locationObject.getJSONObject("address");
 
                             // Get the key from the address object
-                            key = addressObject.getInt("key");
+                            int key = addressObject.getInt("key");
 
+                            // Trigger callback with the obtained key
+                            callback.onKeyReceived(key);
+
+                        } else {
+                            callback.onError("No location found");
                         }
+
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        callback.onError("Error parsing JSON");
                     }
+                } else {
+                    callback.onError("Empty response");
                 }
             }
         }.execute();

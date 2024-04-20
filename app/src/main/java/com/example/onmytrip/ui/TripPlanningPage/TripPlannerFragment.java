@@ -1,6 +1,7 @@
 package com.example.onmytrip.ui.TripPlanningPage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,19 +67,45 @@ public class TripPlannerFragment extends Fragment {
         });
     }
 
-    private void processAddress(String originAddress, String destinationAddress){
-
-        int originKey = 0;
-        int destinationKey = 0;
-
+    private void processAddress(String originAddress, String destinationAddress) {
+        // Retrieve latitude and longitude for origin address
         location.getLatLongFromAddress(originAddress, getContext());
-        transitApi.getLocationKey(location.getRqLatitude(), location.getRqLongitude());
-        originKey = transitApi.getKey();
+        double originLatitude = location.getRqLatitude();
+        double originLongitude = location.getRqLongitude();
 
+        // Retrieve latitude and longitude for destination address
         location.getLatLongFromAddress(destinationAddress, getContext());
-        transitApi.getLocationKey(location.getRqLatitude(), location.getRqLongitude());
-        destinationKey = transitApi.getKey();
+        double destinationLatitude = location.getRqLatitude();
+        double destinationLongitude = location.getRqLongitude();
 
+        // Use callbacks or a listener approach to handle the asynchronous response
+        transitApi.getLocationKey(originLatitude, originLongitude, new TransitAPI.KeyCallback() {
+            @Override
+            public void onKeyReceived(int originKey) {
+                // Origin key retrieved, now fetch destination key
+                transitApi.getLocationKey(destinationLatitude, destinationLongitude, new TransitAPI.KeyCallback() {
+                    @Override
+                    public void onKeyReceived(int destinationKey) {
+                        // Both origin and destination keys retrieved, proceed with trip planning
+                        transitApi.getTripPlan(originKey, destinationKey);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Log.e("DestinationKeyError", errorMessage);
+                        // Handle error retrieving destination key
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("OriginKeyError", errorMessage);
+                // Handle error retrieving origin key
+            }
+        });
     }
+
+
 
 }
