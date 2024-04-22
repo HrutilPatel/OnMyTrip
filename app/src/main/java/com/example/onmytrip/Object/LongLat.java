@@ -95,7 +95,7 @@ public class LongLat {
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
 
         try {
-            List<Address> addresses = geocoder.getFromLocationName(address, 1);
+            List<Address> addresses = geocoder.getFromLocationName(address+",Winnipeg,Manitoba", 1);
             if (addresses != null && addresses.size() > 0) {
 
                 Address location = addresses.get(0);

@@ -11,12 +11,12 @@ import com.example.onmytrip.R;
 
 import java.util.List;
 
-public class TripPlanAdapter extends BaseAdapter {
+public class TripPlanningPage extends BaseAdapter {
 
     private Context context;
     private List<String> stepsList;
 
-    public TripPlanAdapter(Context context, List<String> stepsList) {
+    public TripPlanningPage(Context context, List<String> stepsList) {
         this.context = context;
         this.stepsList = stepsList;
     }
@@ -38,24 +38,17 @@ public class TripPlanAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder viewHolder;
-
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_layout, parent, false);
-            viewHolder = new ViewHolder();
-            viewHolder.stepTextView = convertView.findViewById(R.id.stepTextView);
-            convertView.setTag(viewHolder);
-        } else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            convertView = LayoutInflater.from(context).inflate(R.layout.trip_step_item, parent, false);
         }
 
+        // Get the step string at the current position
         String step = stepsList.get(position);
-        viewHolder.stepTextView.setText(step);
+
+        // Bind step data to views
+        TextView stepTextView = convertView.findViewById(R.id.stepTextView);
+        stepTextView.setText(step);
 
         return convertView;
-    }
-
-    private static class ViewHolder {
-        TextView stepTextView;
     }
 }

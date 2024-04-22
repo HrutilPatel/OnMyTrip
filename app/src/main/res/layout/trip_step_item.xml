@@ -1,0 +1,11 @@
+<!-- trip_step_item.xml -->
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/stepTextView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textSize="16sp"
+    android:padding="15dp"
+    android:layout_marginTop="170dp"
+    android:textColor="@android:color/black"/>
+
