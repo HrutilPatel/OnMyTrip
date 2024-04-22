@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.onmytrip.Object.LongLat;
 import com.example.onmytrip.Persistence.TransitAPI;
@@ -32,18 +33,20 @@ public class TripPlannerFragment extends Fragment {
     private StopsAdapter adapter;
     private List<String> stepsList;
     private ListView listView;
-
+    private TripViewModel tripViewModel;
     private LongLat location;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_gallery, container, false);
+        return inflater.inflate(R.layout.fragment_tripplanning, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        tripViewModel = new ViewModelProvider(requireActivity()).get(TripViewModel.class);
 
         originEditText = view.findViewById(R.id.editTextText);
         destinationEditText = view.findViewById(R.id.editTextText2);
@@ -82,6 +85,7 @@ public class TripPlannerFragment extends Fragment {
 
         transitApi.originAddress = originAddress;
         transitApi.destinationAddress = destinationAddress;
+        tripViewModel.setTripAddress(originAddress, destinationAddress);
 
         // Use callbacks or a listener approach to handle the asynchronous response
         transitApi.getLocationKey(originLatitude, originLongitude, new TransitAPI.KeyCallback() {
@@ -98,6 +102,7 @@ public class TripPlannerFragment extends Fragment {
                                 // Display trip steps in ListView
                                 ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, steps);
                                 listView.setAdapter(adapter);
+                                tripViewModel.getQr().setData(steps.toString());
                             }
 
                             @Override

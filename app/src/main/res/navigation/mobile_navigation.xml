@@ -15,11 +15,11 @@
         android:id="@+id/nav_gallery"
         android:name="com.example.onmytrip.ui.TripPlanningPage.TripPlannerFragment"
         android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_tripplanning" />
 
     <fragment
         android:id="@+id/nav_slideshow"
-        android:name="com.example.onmytrip.ui.QRCodePage.SlideshowFragment"
+        android:name="com.example.onmytrip.ui.QRCodePage.qrCodeFragment"
         android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_qrcode" />
 </navigation>
