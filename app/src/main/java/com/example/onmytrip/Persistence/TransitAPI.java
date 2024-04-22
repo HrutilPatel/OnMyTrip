@@ -1,6 +1,8 @@
 package com.example.onmytrip.Persistence;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.example.onmytrip.Object.LongLat;
@@ -18,14 +20,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TransitAPI {
 
     private static LongLat location;
+    public String originAddress;
+    public String destinationAddress;
     private static ArrayList<Stops> stopsList;
 
     private static List<String> stepsList;
-    private static int key ;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public interface DataCallback {
         void onDataLoaded(String data);
@@ -137,33 +144,41 @@ public class TransitAPI {
                     try {
                         // Parse JSON response
                         JSONObject jsonResponse = new JSONObject(data);
+
+                        // Get the array of locations
                         JSONArray locationsArray = jsonResponse.getJSONArray("locations");
 
                         if (locationsArray.length() > 0) {
                             // Get the first location from the array
-                            JSONObject locationObject = locationsArray.getJSONObject(0);
+                            JSONObject firstLocation = locationsArray.getJSONObject(0);
 
-                            // Get the address object within the location
-                            JSONObject addressObject = locationObject.getJSONObject("address");
+                            // Check if the location has an address object
+                            if (firstLocation.has("address")) {
+                                // Get the address object within the location
+                                JSONObject addressObject = firstLocation.getJSONObject("address");
 
-                            // Get the key from the address object
-                            int key = addressObject.getInt("key");
+                                // Get the key from the address object
+                                int key = addressObject.getInt("key");
 
-                            // Trigger callback with the obtained key
-                            callback.onKeyReceived(key);
+                                // Trigger callback with the obtained key
+                                callback.onKeyReceived(key);
 
+                            } else {
+                                callback.onError("No address found for the first location");
+                            }
                         } else {
-                            callback.onError("No location found");
+                            callback.onError("No locations found in the response");
                         }
 
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        callback.onError("Error parsing JSON");
+                        callback.onError("Error parsing JSON: " + e.getMessage());
                     }
                 } else {
                     callback.onError("Empty response");
                 }
             }
+
         }.execute();
     }
 
@@ -174,77 +189,103 @@ public class TransitAPI {
     *
     *
     * */
-    public static void getTripPlan(int originKey, int destinationKey) {
-        new AsyncTask<Void, Void, List<String>>() {
-            @Override
-            protected List<String> doInBackground(Void... voids) {
+    public void getTripPlan(int originKey, int destinationKey, TripPlanListener listener) {
+        executorService.execute(() -> {
+            List<String> stepsList = new ArrayList<>();
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
 
-                stepsList = new ArrayList<>();
+            try {
+                String apiUrl = "https://api.winnipegtransit.com/v3/trip-planner.json?api-key=z5n7FCN-dAfzeP5JbMxU"
+                        + "&origin=addresses/" + originKey
+                        + "&destination=addresses/" + destinationKey;
 
-                try {
-                    // Construct the API URL
-                    String apiKey = "z5n7FCN-dAfzeP5JbMxU"; // Replace with your API key
-                    String apiUrl = "https://api.winnipegtransit.com/v3/trip-planner.json?api-key=" + apiKey
-                            + "&origin=addresses/" + originKey
-                            + "&destination=addresses/" + destinationKey;
+                URL url = new URL(apiUrl);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
 
-                    // Create URL object and open connection
-                    URL url = new URL(apiUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-
-                    // Read response
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
-
-                    // Parse JSON response
-                    JSONObject jsonResponse = new JSONObject(response.toString());
-                    JSONArray plansArray = jsonResponse.getJSONArray("plans");
-
-                    // Iterate over trip plans
-                    for (int i = 0; i < plansArray.length(); i++) {
-                        JSONObject plan = plansArray.getJSONObject(i);
-                        JSONArray segments = plan.getJSONArray("segments");
-
-                        // Iterate over segments in the plan
-                        for (int j = 0; j < segments.length(); j++) {
-                            JSONObject segment = segments.getJSONObject(j);
-                            String type = segment.getString("type");
-
-                            // Add step to the list based on segment type
-                            if (type.equals("walk")) {
-                                JSONObject from = segment.getJSONObject("from");
-                                JSONObject to = segment.getJSONObject("to");
-                                String fromName = from.getJSONObject("stop").getString("name");
-                                String toName = to.getJSONObject("destination").getJSONObject("monument").getString("name");
-                                stepsList.add("Walk from " + fromName + " to " + toName);
-                            } else if (type.equals("ride")) {
-                                JSONObject route = segment.getJSONObject("route");
-                                String routeName = route.getString("name");
-                                String variantName = segment.getJSONObject("variant").getString("name");
-                                stepsList.add("Ride " + routeName + " (" + variantName + ")");
-                            }
-                        }
-                    }
-
-                } catch (IOException | JSONException e) {
-                    Log.e("TripPlanner", "Error fetching trip plan", e);
+                // Read response
+                StringBuilder response = new StringBuilder();
+                reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
                 }
 
-                return stepsList;
+                // Parse JSON response
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                JSONArray plansArray = jsonResponse.getJSONArray("plans");
+
+                // Iterate over trip plans
+                for (int i = 0; i < plansArray.length(); i++) {
+                    JSONObject plan = plansArray.getJSONObject(i);
+                    JSONArray segments = plan.getJSONArray("segments");
+
+                    // Iterate over segments in the plan
+                    for (int j = 0; j < segments.length(); j++) {
+                        JSONObject segment = segments.getJSONObject(j);
+                        String type = segment.getString("type");
+
+                        // Add step to the list based on segment type
+                        if (type.equals("walk")) {
+                            JSONObject from = segment.getJSONObject("from");
+                            String fromName = getLocationName(from);
+                            JSONObject to = segment.getJSONObject("to");
+                            String toName = getLocationName(to);
+                            stepsList.add("Walk from " + fromName + " to " + toName);
+                        } else if (type.equals("ride")) {
+                            JSONObject route = segment.getJSONObject("route");
+                            String routeName = route.getString("name");
+                            String variantName = segment.getJSONObject("variant").getString("name");
+                            stepsList.add("Ride " + routeName + " (" + variantName + ")");
+                        }
+                    }
+                }
+
+                // Notify listener on the main thread
+                mainHandler.post(() -> listener.onTripPlanReady(stepsList));
+
+            } catch (IOException | JSONException e) {
+                // Notify listener of error on the main thread
+                mainHandler.post(() -> listener.onError("Error fetching trip plan: " + e.getMessage()));
+
+            } finally {
+                // Clean up resources
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        Log.e("TransitAPI", "Error closing reader", e);
+                    }
+                }
             }
-
-        }.execute();
+        });
     }
 
-    public static int getKey(){
-        return key;
+    // Helper method to get location name from a JSON object (either from or to)
+    private String getLocationName(JSONObject locationObject) throws JSONException {
+        if (locationObject.has("stop")) {
+            JSONObject stop = locationObject.getJSONObject("stop");
+            return stop.getString("name");
+        } else if (locationObject.has("destination")) {
+            JSONObject destination = locationObject.getJSONObject("destination");
+            if (destination.has("monument")) {
+                JSONObject monument = destination.getJSONObject("monument");
+                return monument.getString("name");
+            } else if (destination.has("address")) {
+                JSONObject address = destination.getJSONObject("address");
+                // Assuming address contains street information
+                String streetName = address.getJSONObject("street").getString("name");
+                String streetType = address.getJSONObject("street").getString("type");
+                return streetName + " " + streetType;
+            }
+        }
+        return originAddress;
     }
+
 
     public static void parseJasonStop(StringBuilder data) throws JSONException {
         stopsList = new ArrayList<>();

@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -30,6 +31,7 @@ public class TripPlannerFragment extends Fragment {
 
     private StopsAdapter adapter;
     private List<String> stepsList;
+    private ListView listView;
 
     private LongLat location;
 
@@ -45,7 +47,7 @@ public class TripPlannerFragment extends Fragment {
 
         originEditText = view.findViewById(R.id.editTextText);
         destinationEditText = view.findViewById(R.id.editTextText2);
-        ListView listView = view.findViewById(R.id.listView2);
+        listView = view.findViewById(R.id.listView2);
 
         transitApi = new TransitAPI();
         stepsList = new ArrayList<>();
@@ -78,6 +80,9 @@ public class TripPlannerFragment extends Fragment {
         double destinationLatitude = location.getRqLatitude();
         double destinationLongitude = location.getRqLongitude();
 
+        transitApi.originAddress = originAddress;
+        transitApi.destinationAddress = destinationAddress;
+
         // Use callbacks or a listener approach to handle the asynchronous response
         transitApi.getLocationKey(originLatitude, originLongitude, new TransitAPI.KeyCallback() {
             @Override
@@ -87,7 +92,19 @@ public class TripPlannerFragment extends Fragment {
                     @Override
                     public void onKeyReceived(int destinationKey) {
                         // Both origin and destination keys retrieved, proceed with trip planning
-                        transitApi.getTripPlan(originKey, destinationKey);
+                        transitApi.getTripPlan(originKey, destinationKey, new TransitAPI.TripPlanListener() {
+                            @Override
+                            public void onTripPlanReady(List<String> steps) {
+                                // Display trip steps in ListView
+                                ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, steps);
+                                listView.setAdapter(adapter);
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                Toast.makeText(requireContext(), "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     @Override
