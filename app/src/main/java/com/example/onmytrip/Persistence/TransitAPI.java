@@ -55,7 +55,7 @@ public class TransitAPI {
     * FOR STOPS DATA
     *
     * */
-    public static void getStopData(final DataCallback callback) {
+    public static void getStopData(final DataCallback callback, double longitude, double latitude) {
 
         location = new LongLat();
         stopsList = new ArrayList<>();
