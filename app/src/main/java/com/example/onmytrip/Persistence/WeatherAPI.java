@@ -1,77 +1,79 @@
 package com.example.onmytrip.Persistence;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import org.json.JSONObject;
-import org.json.JSONException;
+
 public class WeatherAPI {
-    private static final String WINNIPEG_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather?q=Winnipeg,ca&units=metric&appid=abc01e9fb6e500af8ad782d1984b211f";
-    private static final String HOURLY_FORECAST_URL = "http://api.openweathermap.org/data/2.5/onecall?exclude=current,minutely,daily,alerts&lat=49.8844&lon=-97.147&appid=abc01e9fb6e500af8ad782d1984b211f" ;
 
-    private static double temperature ;
-    private static double windSpeed;
+    private static final String HOURLY_FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast?q=Winnipeg,Manitoba&units=metric&appid=abc01e9fb6e500af8ad782d1984b211f";
 
-    public static void parseWeatherData(String jsonData) {
-        try {
-            JSONObject obj = new JSONObject(jsonData);
-
-            // Get temperature and wind speed for the next hour (first entry in hourly array)
-            JSONObject hourlyData = obj.getJSONArray("hourly").getJSONObject(0);
-            temperature = hourlyData.getDouble("temp");
-            windSpeed = hourlyData.getDouble("wind_speed");
-
-        } catch (JSONException e) {
-            System.out.println("An error occurred while parsing the JSON data: " + e.getMessage());
-        }
+    public interface WeatherDataListener {
+        void onWeatherDataFetched(double temperature, double windSpeed);
+        void onWeatherDataError(String errorMessage);
     }
 
-    public static void getHourlyForecast() {
-        try {
-            URL url = new URL(HOURLY_FORECAST_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            StringBuilder result = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+    public static void fetchWeatherData(WeatherDataListener listener) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    URL url = new URL(HOURLY_FORECAST_URL);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+
+                    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        InputStream inputStream = connection.getInputStream();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                        StringBuilder response = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        reader.close();
+                        return response.toString();
+                    } else {
+                        return null;
+                    }
+                } catch (IOException e) {
+                    Log.e("WeatherAPI", "Error fetching weather data", e);
+                    return null;
+                }
             }
-            rd.close();
-            parseWeatherData(result.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static void getWinnipegWeather() {
-        try {
-            URL url = new URL(WINNIPEG_WEATHER_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            StringBuilder result = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+            @Override
+            protected void onPostExecute(String jsonData) {
+                if (jsonData != null) {
+                    try {
+                        JSONObject obj = new JSONObject(jsonData);
+                        JSONArray hourlyData = obj.getJSONArray("list");
+                        if (hourlyData.length() > 0) {
+                            JSONObject firstHourData = hourlyData.getJSONObject(0);
+                            JSONObject main = firstHourData.getJSONObject("main");
+                            double temperature = main.getDouble("temp");
+                            JSONObject wind = firstHourData.getJSONObject("wind");
+                            double windSpeed = wind.getDouble("speed");
+                            listener.onWeatherDataFetched(temperature, windSpeed);
+                        } else {
+                            listener.onWeatherDataError("No hourly forecast data available");
+                        }
+                    } catch (JSONException e) {
+                        listener.onWeatherDataError("Error parsing JSON response: " + e.getMessage());
+                    }
+                } else {
+                    listener.onWeatherDataError("Failed to fetch weather data");
+                }
             }
-            rd.close();
-            System.out.println(result.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }.execute();
     }
-
-    public static double getTemperature(){
-        getHourlyForecast();
-        return temperature;
-    }
-
-    public static double getWindSpeed(){
-        getHourlyForecast();
-        return windSpeed;
-    }
-
 }
-

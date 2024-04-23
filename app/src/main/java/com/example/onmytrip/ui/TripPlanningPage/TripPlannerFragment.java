@@ -1,5 +1,6 @@
 package com.example.onmytrip.ui.TripPlanningPage;
 
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +41,7 @@ public class TripPlannerFragment extends Fragment {
     private ListView listView;
     private TripViewModel tripViewModel;
     private LongLat location;
+    private ImageView imageView; 
 
     private WeatherAPI weather;
 
@@ -57,19 +60,35 @@ public class TripPlannerFragment extends Fragment {
         originEditText = view.findViewById(R.id.editTextText);
         destinationEditText = view.findViewById(R.id.editTextText2);
         listView = view.findViewById(R.id.listView2);
+        imageView = view.findViewById(R.id.imageButton);
 
         transitApi = new TransitAPI();
         stepsList = new ArrayList<>();
         location = new LongLat();
 
         Button searchButton = view.findViewById(R.id.button);
-        WeatherAPI.getHourlyForecast();
+
         // Get references to the TextView elements
         temperatureTextView = view.findViewById(R.id.temperature);
         windchillsTextView = view.findViewById(R.id.windchills);
 
-        temperatureTextView.setText( "Temprature : " + String.valueOf(weather.getTemperature()));
-        windchillsTextView.setText("WindSpeed : " + String.valueOf(weather.getWindSpeed()));
+        imageView.setImageResource(R.drawable.weather);
+
+
+        WeatherAPI.fetchWeatherData(new WeatherAPI.WeatherDataListener() {
+            @Override
+            public void onWeatherDataFetched(double temperature, double windSpeed) {
+                temperatureTextView.setText( "Temprature : " + String.valueOf(temperature) + " °C");
+                windchillsTextView.setText("WindSpeed : " + String.valueOf(windSpeed) + " m/s");
+            }
+
+            @Override
+            public void onWeatherDataError(String errorMessage) {
+                // Handle error occurred during weather data fetch
+                Log.e("WeatherAPI", "Weather data fetch error: " + errorMessage);
+            }
+        });
+
 
 
         searchButton.setOnClickListener(new View.OnClickListener() {
