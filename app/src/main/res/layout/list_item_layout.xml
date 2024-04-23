@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#52D5E7EA"
+    android:background="@drawable/home2"
     android:orientation="horizontal"
     android:padding="16dp">
 
@@ -12,7 +12,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"
-        android:background="#57B5ECB6" />
+        android:background="@drawable/bus_stop" />
 
     <!-- Icon -->
 
@@ -24,6 +24,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:text="Item Name"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        />
 
 </LinearLayout>
