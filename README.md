@@ -42,6 +42,10 @@ To begin using OnMyTrip, please follow these steps:
 
 4. **Launch and Explore**
    - Open the OnMyTrip app on your device.
+  
+### User Guide 
+
+- Video guide [link](https://drive.google.com/file/d/1LR1ciLTN6IyULhIzXpajIF7162tZPeUu/view?usp=sharing)
 
 ### Disclaimer
 This application is not affiliated with or endorsed by Winnipeg Transit or any official weather service provider. Data provided within the app may be subject to the terms and conditions of respective API providers.
