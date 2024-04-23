@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.onmytrip.Object.LongLat;
 import com.example.onmytrip.Persistence.TransitAPI;
+import com.example.onmytrip.Persistence.WeatherAPI;
 import com.example.onmytrip.R;
 import com.example.onmytrip.ui.StopsPage.StopsAdapter;
 
@@ -29,12 +31,16 @@ public class TripPlannerFragment extends Fragment {
     private EditText originEditText;
     private EditText destinationEditText;
     private TransitAPI transitApi;
+    private TextView temperatureTextView;
+    private TextView windchillsTextView;
 
     private StopsAdapter adapter;
     private List<String> stepsList;
     private ListView listView;
     private TripViewModel tripViewModel;
     private LongLat location;
+
+    private WeatherAPI weather;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -57,6 +63,15 @@ public class TripPlannerFragment extends Fragment {
         location = new LongLat();
 
         Button searchButton = view.findViewById(R.id.button);
+        WeatherAPI.getHourlyForecast();
+        // Get references to the TextView elements
+        temperatureTextView = view.findViewById(R.id.temperature);
+        windchillsTextView = view.findViewById(R.id.windchills);
+
+        temperatureTextView.setText( "Temprature : " + String.valueOf(weather.getTemperature()));
+        windchillsTextView.setText("WindSpeed : " + String.valueOf(weather.getWindSpeed()));
+
+
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

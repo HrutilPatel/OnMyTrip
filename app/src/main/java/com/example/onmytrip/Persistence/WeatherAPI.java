@@ -13,6 +13,19 @@ public class WeatherAPI {
     private static double temperature ;
     private static double windSpeed;
 
+    public static void parseWeatherData(String jsonData) {
+        try {
+            JSONObject obj = new JSONObject(jsonData);
+
+            // Get temperature and wind speed for the next hour (first entry in hourly array)
+            JSONObject hourlyData = obj.getJSONArray("hourly").getJSONObject(0);
+            temperature = hourlyData.getDouble("temp");
+            windSpeed = hourlyData.getDouble("wind_speed");
+
+        } catch (JSONException e) {
+            System.out.println("An error occurred while parsing the JSON data: " + e.getMessage());
+        }
+    }
 
     public static void getHourlyForecast() {
         try {
@@ -32,24 +45,6 @@ public class WeatherAPI {
         }
     }
 
-    public static void parseWeatherData(String jsonData) {
-        try {
-            JSONObject obj = new JSONObject(jsonData);
-
-            // Get weather condition for the next hour
-            String weatherCondition = obj.getJSONArray("hourly").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("description");
-
-            // Get temperature for the next hour
-            temperature = obj.getJSONArray("hourly").getJSONObject(0).getDouble("temp");
-
-
-            // Get wind speed for the next hour
-            windSpeed = obj.getJSONArray("hourly").getJSONObject(0).getDouble("wind_speed");
-
-        } catch (JSONException e) {
-            System.out.println("An error occurred while parsing the JSON data: " + e.getMessage());
-        }
-    }
     public static void getWinnipegWeather() {
         try {
             URL url = new URL(WINNIPEG_WEATHER_URL);
@@ -68,11 +63,13 @@ public class WeatherAPI {
         }
     }
 
-    public double getTemperature(){
+    public static double getTemperature(){
+        getHourlyForecast();
         return temperature;
     }
 
-    public double getWindSpeed(){
+    public static double getWindSpeed(){
+        getHourlyForecast();
         return windSpeed;
     }
 
