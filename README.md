@@ -31,7 +31,7 @@ OnMyTrip offers the following features to enhance your travel experience:
 To begin using OnMyTrip, please follow these steps:
 
 1. **Download the Application**
-   - Obtain the latest version of the app by downloading the APK file from the [release page](link_to_your_release_page) on GitHub.
+   - Obtain the latest version of the app by downloading the APK file from the [release page](https://github.com/HrutilPatel/OnMyTrip/releases/tag/V1) on GitHub.
 
 2. **Install the Application**
    - After downloading the APK file, navigate to your device's storage and locate the downloaded file.
