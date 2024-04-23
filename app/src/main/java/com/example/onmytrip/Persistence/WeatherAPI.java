@@ -10,6 +10,10 @@ public class WeatherAPI {
     private static final String WINNIPEG_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather?q=Winnipeg,ca&units=metric&appid=abc01e9fb6e500af8ad782d1984b211f";
     private static final String HOURLY_FORECAST_URL = "http://api.openweathermap.org/data/2.5/onecall?exclude=current,minutely,daily,alerts&lat=49.8844&lon=-97.147&appid=abc01e9fb6e500af8ad782d1984b211f" ;
 
+    private static double temperature ;
+    private static double windSpeed;
+
+
     public static void getHourlyForecast() {
         try {
             URL url = new URL(HOURLY_FORECAST_URL);
@@ -34,15 +38,14 @@ public class WeatherAPI {
 
             // Get weather condition for the next hour
             String weatherCondition = obj.getJSONArray("hourly").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("description");
-            System.out.println("Weather condition for the next hour: " + weatherCondition);
 
             // Get temperature for the next hour
-            double temperature = obj.getJSONArray("hourly").getJSONObject(0).getDouble("temp");
-            System.out.println("Temperature for the next hour: " + temperature + "°C");
+            temperature = obj.getJSONArray("hourly").getJSONObject(0).getDouble("temp");
+
 
             // Get wind speed for the next hour
-            double windSpeed = obj.getJSONArray("hourly").getJSONObject(0).getDouble("wind_speed");
-            System.out.println("Wind speed for the next hour: " + windSpeed + " m/s");
+            windSpeed = obj.getJSONArray("hourly").getJSONObject(0).getDouble("wind_speed");
+
         } catch (JSONException e) {
             System.out.println("An error occurred while parsing the JSON data: " + e.getMessage());
         }
@@ -65,9 +68,13 @@ public class WeatherAPI {
         }
     }
 
-    public static void main(String[] args) {
-        getWinnipegWeather();
-        getHourlyForecast();
+    public double getTemperature(){
+        return temperature;
     }
+
+    public double getWindSpeed(){
+        return windSpeed;
+    }
+
 }
 
