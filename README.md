@@ -45,7 +45,7 @@ To begin using OnMyTrip, please follow these steps:
   
 ### User Guide 
 
-- Video guide [link](https://drive.google.com/file/d/1LR1ciLTN6IyULhIzXpajIF7162tZPeUu/view?usp=sharing)
+- Video guide [link](https://drive.google.com/file/d/1CmF4wdMwcMZxPwqyBfjnocsuRA9-epsu/view?usp=drive_link)
 
 ### Disclaimer
 This application is not affiliated with or endorsed by Winnipeg Transit or any official weather service provider. Data provided within the app may be subject to the terms and conditions of respective API providers.
