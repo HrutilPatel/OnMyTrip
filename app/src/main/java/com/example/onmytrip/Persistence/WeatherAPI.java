@@ -16,7 +16,7 @@ import java.net.URL;
 
 public class WeatherAPI {
 
-    private static final String HOURLY_FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast?q=Winnipeg,Manitoba&units=metric&appid=abc01e9fb6e500af8ad782d1984b211f";
+    private static final String HOURLY_FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast?q=Winnipeg,Manitoba&units=metric&appid=??";
 
     public interface WeatherDataListener {
         void onWeatherDataFetched(double temperature, double windSpeed);
