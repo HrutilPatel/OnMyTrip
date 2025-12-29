@@ -64,7 +64,7 @@ public class TransitAPI {
             protected String doInBackground(Void... voids) {
                 try {
 
-                    URL url = new URL("https://api.winnipegtransit.com/v3/stops.json?api-key=z5n7FCN-dAfzeP5JbMxU&lat=49.8350&lon=-97.0562&distance=250");
+                    URL url = new URL("https://api.winnipegtransit.com/v3/stops.json?api-key=??=49.8350&lon=-97.0562&distance=250");
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
 
